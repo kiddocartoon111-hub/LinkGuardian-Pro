@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head><title>Dashboard - LinkGuardian</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<nav class="navbar"><div class="container"><div class="logo">🔗 LinkGuardian Pro</div><div class="nav-links"><span id="user-email"></span><a href="#" onclick="logout()">Logout</a></div></div></nav>
+<div class="dashboard container">
+    <div class="dashboard-header"><h1>Your Links</h1><button class="btn btn-primary" onclick="showAddLinkModal()">+ Add New Link</button></div>
+    <div class="plan-status" id="plan-status"></div>
+    <div class="links-grid" id="links-container"></div>
+</div>
+<div id="addLinkModal" class="modal"><div class="modal-content"><span class="close" onclick="closeModal()">&times;</span><h2>Add New Link</h2><form onsubmit="addLink(event)"><div class="form-group"><label>Link Name:</label><input type="text" id="link-name" required></div><div class="form-group"><label>URL:</label><input type="url" id="link-url" required></div><div class="form-group"><label>Platform:</label><select id="link-platform"><option value="generic">Generic</option><option value="amazon">Amazon</option><option value="flipkart">Flipkart</option></select></div><div class="form-group"><label>Frequency:</label><select id="link-frequency"><option value="daily">Daily</option><option value="hourly">Hourly</option></select></div><button type="submit" class="btn btn-primary">Add Link</button></form></div></div>
+<script>
+    const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://your-backend-url.up.railway.app/api';
+    async function checkAuth() { /* similar to previous */ }
+    async function loadLinks() { /* fetch /api/links and display */ }
+    async function addLink(event) { /* POST /api/links */ }
+    // ... (rest of dashboard logic from previous messages)
+</script>
+</body>
+</html>
