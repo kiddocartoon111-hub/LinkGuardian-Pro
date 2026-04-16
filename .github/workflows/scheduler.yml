@@ -1,0 +1,16 @@
+name: Daily Link Check
+on:
+  schedule:
+    - cron: '0 6 * * *'
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger scheduled check
+        run: |
+          curl -X POST \
+            -H "X-API-Key: ${{ secrets.CRON_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            ${{ secrets.BACKEND_URL }}/api/cron/daily-check
