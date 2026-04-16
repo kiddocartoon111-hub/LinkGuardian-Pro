@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head><title>Dashboard - LinkGuardian</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<nav class="navbar"><div class="container"><div class="logo">🔗 LinkGuardian Pro</div><div class="nav-links"><span id="user-email"></span><a href="#" onclick="logout()">Logout</a></div></div></nav>
+<div class="dashboard container">
+    <div class="dashboard-header"><h1>Your Links</h1><button class="btn btn-primary" onclick="showAddLinkModal()">+ Add New Link</button></div>
+    <div class="plan-status" id="plan-status"></div>
+    <div class="links-grid" id="links-container"></div>
+</div>
+<div id="addLinkModal" class="modal"><div class="modal-content"><span class="close" onclick="closeModal()">&times;</span><h2>Add New Link</h2><form onsubmit="addLink(event)"><div class="form-group"><label>Link Name:</label><input type="text" id="link-name" required></div><div class="form-group"><label>URL:</label><input type="url" id="link-url" required></div><div class="form-group"><label>Platform:</label><select id="link-platform"><option value="generic">Generic</option><option value="amazon">Amazon</option><option value="flipkart">Flipkart</option></select></div><div class="form-group"><label>Frequency:</label><select id="link-frequency"><option value="daily">Daily</option><option value="hourly">Hourly</option></select></div><button type="submit" class="btn btn-primary">Add Link</button></form></div></div>
+<script>
+    const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://your-backend-url.up.railway.app/api';
+    async function checkAuth() {
+        const user = localStorage.getItem('user');
+        if (!user) window.location.href = 'login.html';
+        document.getElementById('user-email').textContent = JSON.parse(user).email;
+        loadLinks(); loadPlanStatus();
+    }
+    async function loadLinks() {
+        const response = await fetch(`${API_URL}/links`, { credentials: 'include' });
+        const links = await response.json();
+        const container = document.getElementById('links-container');
+        if (links.length === 0) { container.innerHTML = '<div class="no-links">No links added yet. Click "Add New Link".</div>'; return; }
+        container.innerHTML = links.map(link => `
+            <div class="link-card">
+                <div class="link-header"><h3>${link.name}</h3><span class="status-badge ${link.last_status}">${link.last_status || 'pending'}</span></div>
+                <div class="link-details"><p class="link-url">${link.url}</p><p>Last checked: ${link.last_checked ? new Date(link.last_checked).toLocaleString() : 'Never'}</p><p>Response: ${link.last_response_time || '-'}ms</p></div>
+                <div class="link-actions"><button class="btn btn-small" onclick="checkNow('${link.id}')">Check Now</button><button class="btn btn-small btn-outline" onclick="deleteLink('${link.id}')">Delete</button></div>
+            </div>
+        `).join('');
+    }
+    async function loadPlanStatus() {
+        const response = await fetch(`${API_URL}/user`, { credentials: 'include' });
+        const user = await response.json();
+        const joinDate = new Date(user.join_date);
+        const planDays = { free:7, pro:30, business:30, agency:30 };
+        const days = planDays[user.plan] || 7;
+        const expiryDate = new Date(joinDate.getTime() + days*24*60*60*1000);
+        const daysLeft = Math.ceil((expiryDate - new Date()) / (1000*60*60*24));
+        document.getElementById('plan-status').innerHTML = `<div class="plan-card"><strong>Plan: ${user.plan.toUpperCase()}</strong> | Expires in: ${daysLeft > 0 ? daysLeft + ' days' : 'Expired! <a href="checkout.html?plan='+user.plan+'">Renew</a>'}</div>`;
+    }
+    async function addLink(event) {
+        event.preventDefault();
+        const link = { name: document.getElementById('link-name').value, url: document.getElementById('link-url').value, platform: document.getElementById('link-platform').value, frequency: document.getElementById('link-frequency').value };
+        const response = await fetch(`${API_URL}/links`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(link), credentials: 'include' });
+        if (response.ok) { closeModal(); loadLinks(); } else { const err = await response.json(); alert(err.error); }
+    }
+    async function checkNow(linkId) {
+        const response = await fetch(`${API_URL}/links/${linkId}/check`, { method: 'POST', credentials: 'include' });
+        if (response.ok) { alert('Check completed! Refreshing...'); loadLinks(); } else alert('Error');
+    }
+    async function deleteLink(linkId) {
+        if (!confirm('Delete this link?')) return;
+        await fetch(`${API_URL}/links/${linkId}`, { method: 'DELETE', credentials: 'include' });
+        loadLinks();
+    }
+    function showAddLinkModal() { document.getElementById('addLinkModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('addLinkModal').style.display = 'none'; }
+    function logout() { fetch(`${API_URL}/logout`, { method: 'POST', credentials: 'include' }).then(() => { localStorage.removeItem('user'); window.location.href = '/'; }); }
+    checkAuth();
+</script>
+</body>
+</html>
