@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkGuardian Pro – Never Lose Sales</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">🔗 LinkGuardian Pro</div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="login.html" class="btn btn-outline">Login</a>
+                <a href="signup.html" class="btn btn-primary">Sign Up Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Never Lose Money to Broken Links</h1>
+            <p class="subhead">24/7 monitoring for influencers & e-commerce. Get instant alerts on WhatsApp/Telegram.</p>
+            <div class="free-checker">
+                <h3>Try It Free - Check Any Link</h3>
+                <div class="checker-box">
+                    <input type="url" id="check-url" placeholder="https://example.com/product" required>
+                    <select id="check-platform">
+                        <option value="generic">Generic</option>
+                        <option value="amazon">Amazon</option>
+                        <option value="flipkart">Flipkart</option>
+                    </select>
+                    <button onclick="checkSingleLink()" class="btn btn-primary" id="check-btn">Check Now</button>
+                </div>
+                <div id="single-result" class="result-box"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Why LinkGuardian Pro?</h2>
+            <div class="feature-grid">
+                <div class="feature-card"><div class="icon">🛡️</div><h3>Multi-Layer Checking</h3><p>Direct → ScraperAPI → Proxy Browser. Never miss a status change.</p></div>
+                <div class="feature-card"><div class="icon">📱</div><h3>Instant Alerts</h3><p>Get WhatsApp & Telegram notifications the moment a link breaks.</p></div>
+                <div class="feature-card"><div class="icon">📊</div><h3>Out of Stock Detection</h3><p>Know when products go out of stock on Amazon, Flipkart & more.</p></div>
+                <div class="feature-card"><div class="icon">💰</div><h3>Save Revenue</h3><p>Influencers lose 30% revenue to broken links. We fix that.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <h2>Simple Pricing</h2>
+            <div class="currency-toggle" style="text-align:center; margin-bottom:20px;">
+                <button id="inr-btn" class="btn btn-outline" style="margin-right:10px;">🇮🇳 INR</button>
+                <button id="usd-btn" class="btn btn-outline">🇺🇸 USD</button>
+            </div>
+            <div class="pricing-grid" id="pricing-grid"></div>
+        </div>
+    </section>
+
+    <!-- Terms Acceptance Modal -->
+    <div id="termsModal" class="terms-modal">
+        <div class="terms-modal-content">
+            <h2>Welcome to LinkGuardian Pro</h2>
+            <p>Please read and accept our <a href="terms.html" target="_blank">Terms & Conditions</a> and <a href="privacy.html" target="_blank">Privacy Policy</a> to continue.</p>
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+                <button id="acceptTerms" class="btn btn-primary">Accept</button>
+                <button id="declineTerms" class="btn btn-outline">Decline</button>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align:center; padding:2rem; background:#f9fafb; margin-top:2rem;">
+        <p>&copy; 2026 LinkGuardian Pro. <a href="terms.html">Terms</a> | <a href="privacy.html">Privacy</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a> | <a href="help.html">Help</a></p>
+    </footer>
+
+    <script>
+        // Terms acceptance check
+        if (!localStorage.getItem('linkguardian_terms_accepted')) {
+            document.getElementById('termsModal').style.display = 'flex';
+            document.getElementById('check-url').disabled = true;
+            document.getElementById('check-btn').disabled = true;
+        }
+
+        document.getElementById('acceptTerms').onclick = () => {
+            localStorage.setItem('linkguardian_terms_accepted', 'true');
+            document.getElementById('termsModal').style.display = 'none';
+            document.getElementById('check-url').disabled = false;
+            document.getElementById('check-btn').disabled = false;
+        };
+
+        document.getElementById('declineTerms').onclick = () => {
+            alert('You must accept the Terms & Privacy Policy to use the link checker.');
+        };
+
+        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://your-backend-url.up.railway.app/api';
+
+        async function checkSingleLink() {
+            const url = document.getElementById('check-url').value;
+            const platform = document.getElementById('check-platform').value;
+            const resultDiv = document.getElementById('single-result');
+            if (!url) { alert('Please enter a URL'); return; }
+            resultDiv.innerHTML = '<div class="loading">Checking... 🔍</div>';
+            try {
+                const response = await fetch(`${API_URL}/check-single`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({url, platform})
+                });
+                const data = await response.json();
+                let statusIcon = data.status === 'active' ? '✅' : data.status === 'out_of_stock' ? '📦' : '❌';
+                resultDiv.innerHTML = `
+                    <div class="result-card">
+                        <div>${statusIcon} Status: ${data.status.toUpperCase()}</div>
+                        <div>Response Time: ${data.response_time}ms</div>
+                        <div>Layer: ${data.layer_used}</div>
+                        ${data.error ? `<div class="error">Error: ${data.error}</div>` : ''}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        const plans = {
+            pro: { inr: '₹299', usd: '$9', features: ['20 links', 'Daily checks', 'Telegram alerts', '7-day history'] },
+            business: { inr: '₹999', usd: '$29', features: ['100 links', 'Hourly checks', 'WhatsApp + Telegram', 'Multi-layer fallback', '30-day history'] },
+            agency: { inr: '₹2,499', usd: '$79', features: ['500 links', '15-min checks', 'API access', 'White-label reports'] }
+        };
+        let currentCurrency = 'inr';
+        function renderPricing() {
+            const grid = document.getElementById('pricing-grid');
+            grid.innerHTML = '';
+            for (const [key, data] of Object.entries(plans)) {
+                const price = data[currentCurrency];
+                const card = document.createElement('div');
+                card.className = `pricing-card ${key === 'business' ? 'pro' : ''}`;
+                card.innerHTML = `
+                    <h3>${key.charAt(0).toUpperCase() + key.slice(1)}</h3>
+                    <div class="price">${price}<span>/${currentCurrency === 'inr' ? 'month' : 'mo'}</span></div>
+                    <ul>${data.features.map(f => `<li>✓ ${f}</li>`).join('')}</ul>
+                    <a href="signup.html?plan=${key}&currency=${currentCurrency}" class="btn btn-primary">Choose Plan</a>
+                `;
+                grid.appendChild(card);
+            }
+        }
+        document.getElementById('inr-btn').onclick = () => { currentCurrency = 'inr'; renderPricing(); };
+        document.getElementById('usd-btn').onclick = () => { currentCurrency = 'usd'; renderPricing(); };
+        renderPricing();
+    </script>
+</body>
+                  </html>
