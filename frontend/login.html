@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>Login - LinkGuardian</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="container" style="max-width:400px; margin:100px auto;">
+    <div class="auth-card" style="background:white; padding:2rem; border-radius:16px;">
+        <h2>Login</h2>
+        <form onsubmit="login(event)">
+            <input type="email" id="email" placeholder="Email" required style="width:100%; margin-bottom:1rem; padding:0.75rem; border-radius:8px; border:1px solid #ddd;">
+            <input type="password" id="password" placeholder="Password" required style="width:100%; margin-bottom:1rem; padding:0.75rem; border-radius:8px; border:1px solid #ddd;">
+            <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
+        </form>
+        <p style="margin-top:1rem;">Don't have an account? <a href="signup.html">Sign Up</a></p>
+    </div>
+</div>
+<script>
+    const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://your-backend-url.up.railway.app/api';
+    async function login(event) {
+        event.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const response = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, password})
+        });
+        const data = await response.json();
+        if (data.success) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+            window.location.href = 'dashboard.html';
+        } else {
+            alert('Login failed: ' + data.error);
+        }
+    }
+</script>
+</body>
+  </html>
